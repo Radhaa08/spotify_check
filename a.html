@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Playlist</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0a0a;
+      --surface:   #111111;
+      --border:    #1e1e1e;
+      --accent:    #1DB954;
+      --accent2:   #ff6b35;
+      --text:      #e8e8e8;
+      --muted:     #555;
+      --glow:      0 0 30px rgba(29,185,84,.25);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      background-size: 200px;
+    }
+
+    /* ── HERO ── */
+    header {
+      position: relative; z-index: 1;
+      padding: 80px 60px 40px;
+      display: flex; align-items: flex-end; gap: 40px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cover-art {
+      width: 160px; height: 160px; flex-shrink: 0;
+      background: linear-gradient(135deg, #1DB954 0%, #0a4d22 50%, #ff6b35 100%);
+      border-radius: 4px;
+      box-shadow: var(--glow), 0 20px 60px rgba(0,0,0,.8);
+      display: grid; place-items: center;
+      font-size: 64px;
+      animation: coverFloat 6s ease-in-out infinite;
+    }
+
+    @keyframes coverFloat {
+      0%,100% { transform: translateY(0) rotate(-1deg); }
+      50%      { transform: translateY(-8px) rotate(1deg); }
+    }
+
+    .header-text h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(48px, 8vw, 96px);
+      line-height: .9;
+      letter-spacing: 2px;
+      color: #fff;
+    }
+
+    .header-text h1 span { color: var(--accent); }
+
+    .header-meta {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .header-meta strong { color: var(--accent); }
+
+    /* ── INSTRUCTIONS ── */
+    .instructions {
+      position: relative; z-index: 1;
+      padding: 20px 60px;
+      background: linear-gradient(90deg, rgba(29,185,84,.08) 0%, transparent 100%);
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .instructions span { color: var(--accent); font-weight: 500; }
+
+    /* ── TRACK LIST ── */
+    main {
+      position: relative; z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 30px 80px;
+    }
+
+    .section-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .section-label::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* ── TRACK CARD ── */
+    .track {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      transition: border-color .3s, box-shadow .3s;
+      background: var(--surface);
+    }
+
+    .track:hover {
+      border-color: rgba(29,185,84,.4);
+      box-shadow: 0 4px 30px rgba(29,185,84,.1);
+    }
+
+    /* track header row */
+    .track-header {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      gap: 16px;
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+    }
+
+    .track-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      color: var(--muted);
+      width: 28px;
+      text-align: center;
+      flex-shrink: 0;
+      transition: color .2s;
+    }
+
+    .track:hover .track-num { color: var(--accent); }
+
+    .track-thumb {
+      width: 48px; height: 48px; border-radius: 4px; flex-shrink: 0;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      display: grid; place-items: center;
+      font-size: 22px;
+      border: 1px solid var(--border);
+    }
+
+    .track-info { flex: 1; min-width: 0; }
+
+    .track-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: #fff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .track-artist {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .track-genre {
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(29,185,84,.1);
+      border: 1px solid rgba(29,185,84,.2);
+      padding: 3px 8px;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+
+    .expand-btn {
+      width: 32px; height: 32px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      display: grid; place-items: center;
+      flex-shrink: 0;
+      font-size: 14px;
+      transition: all .2s;
+    }
+
+    .expand-btn:hover, .track.open .expand-btn {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(29,185,84,.1);
+    }
+
+    .chevron { transition: transform .3s; display: inline-block; }
+    .track.open .chevron { transform: rotate(180deg); }
+
+    /* embed panel */
+    .embed-panel {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .45s cubic-bezier(.4,0,.2,1);
+      background: #0d0d0d;
+      border-top: 1px solid transparent;
+    }
+
+    .track.open .embed-panel {
+      max-height: 260px;
+      border-top-color: var(--border);
+    }
+
+    .embed-panel iframe {
+      display: block;
+      width: 100%;
+      border: none;
+    }
+
+    /* placeholder when no track ID set */
+    .embed-placeholder {
+      padding: 28px 24px;
+      display: flex; align-items: center; gap: 16px;
+    }
+
+    .embed-placeholder .icon {
+      font-size: 32px; opacity: .3;
+    }
+
+    .embed-placeholder p {
+      font-size: 13px; color: var(--muted); line-height: 1.6;
+    }
+
+    .embed-placeholder code {
+      background: rgba(255,255,255,.05);
+      padding: 2px 6px; border-radius: 4px;
+      font-size: 12px; color: var(--accent2);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative; z-index: 1;
+      text-align: center;
+      padding: 32px;
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      header { padding: 40px 20px 30px; flex-direction: column; align-items: flex-start; gap: 20px; }
+      .instructions { padding: 14px 20px; }
+      main { padding: 24px 16px 60px; }
+      .track-genre { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="cover-art">🎵</div>
+  <div class="header-text">
+    <h1>MY <span>PLAYLIST</span></h1>
+    <div class="header-meta">
+      10 tracks &nbsp;·&nbsp; <strong>Spotify Previews</strong> &nbsp;·&nbsp; Click a track to play
+    </div>
+  </div>
+</header>
+
+<div class="instructions">
+  <span>How to use:</span> Replace each <code>SPOTIFY_TRACK_ID</code> in the HTML with your actual Spotify track ID.
+  Find it by right-clicking a song in Spotify → Share → Copy Song Link. The ID is the last segment of the URL.
+</div>
+
+<main>
+  <div class="section-label">Tracklist</div>
+
+  <!-- ════════════════════════════════════════
+       TRACKS — Replace SPOTIFY_TRACK_ID with
+       the actual Spotify track ID for each song.
+       e.g. https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^
+       ════════════════════════════════════════ -->
+
+  <div class="track" data-id="https://open.spotify.com/track/2iNqdCchlUZEgjJbQyZf8T?si=F4YYmMixS0Oztwxy-B5ItA">
+    <div class="track-header" onclick="toggleTrack(this)">
+      <span class="track-num">01</span>
+      <div class="track-thumb">🎸</div>
+      <div class="track-info">
+        <div class="track-title">Song Title One</div>
+        <div class="track-artist">Artist Name</div>
+      </div>
+      <span class="track-genre">Rock</span>
+      <button class="expand-btn"><span class="chevron">▾</span></button>
+    </div>
+    <div class="embed-panel"></div>
+  </div>
+
+  <div class="track" data-id="https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC?si=F4YYmMixS0Oztwxy-B5ItA">
+    <div class="track-header" onclick="toggleTrack(this)">
+      <span class="track-num">02</span>
+      <div class="track-thumb">🎹</div>
+      <div class="track-info">
+        <div class="track-title">Song Title Two</div>
+        <div class="track-artist">Artist Name</div>
+      </div>
+      <span class="track-genre">Pop</span>
+      <button class="expand-btn"><span class="chevron">▾</span></button>
+    </div>
+    <div class="embed-panel"></div>
+  </div>
+
+  <div class="track" data-id="https://open.spotify.com/track/5uLU6hMCjMI75M1A2tKUQC?si=F4YYmMixS0Oztwxy-B5ItA">
+    <div class="track-header" onclick="toggleTrack(this)">
+      <span class="track-num">03</span>
+      <div class="track-thumb">🎷</div>
+      <div class="track-info">
+        <div class="track-title">Song Title Three</div>
+        <div class="track-artist">Artist Name</div>
+      </div>
+      <span class="track-genre">Jazz</span>
+      <button class="expand-btn"><span class="chevron">▾</span></button>
+    </div>
+    <div class="embed-panel"></div>
+  </div>
+
+  <div class="track" data-id="https://open.spotify.com/track/6uLU6hMCjMI75M1A2tKUQC?si=F4YYmMixS0Oztwxy-B5ItA">
+    <div class="track-header" onclick="toggleTrack(this)">
+      <span class="track-num">04</span>
+      <div class="track-thumb">🎤</div>
+      <div class="track-info">
+        <div class="track-title">Song Title Four</div>
+        <div class="track-artist">Artist Name</div>
+      </div>
+      <span class="track-genre">Hip-Hop</span>
+      <button class="expand-btn"><span class="chevron">▾</span></button>
+    </div>
+    <div class="embed-panel"></div>
+  </div>
+
+  <div class="track" data-id="https://open.spotify.com/track/7uLU6hMCjMI75M1A2tKUQC?si=F4YYmMixS0Oztwxy-B5ItA">
+    <div class="track-header" onclick="toggleTrack(this)">
+      <span class="track-num">05</span>
+      <div class="track-thumb">🎻</div>
+      <div class="track-info">
+        <div class="track-title">Song Title Five</div>
+        <div class="track-artist">Artist Name</div>
+      </div>
+      <span class="track-genre">Classical</span>
+      <button class="expand-btn"><span class="chevron">▾</span></button>
+    </div>
+    <div class="embed-panel"></div>
+  </div>
+
+  <div class="track" data-id="https://open.spotify.com/track/8uLU6hMCjMI75M1A2tKUQC?si=F4YYmMixS0Oztwxy-B5ItA">
+    <div class="track-header" onclick="toggleTrack(this)">
+      <span class="track-num">06</span>
+      <div class="track-thumb">🎺</div>
+      <div class="track-info">
+        <div class="track-title">Song Title Six</div>
+        <div class="track-artist">Artist Name</div>
+      </div>
+      <span class="track-genre">R&amp;B</span>
+      <button class="expand-btn"><span class="chevron">▾</span></button>
+    </div>
+    <div class="embed-panel"></div>
+  </div>
+
+  <div class="track" data-id="https://open.spotify.com/track/9uLU6hMCjMI75M1A2tKUQC?si=F4YYmMixS0Oztwxy-B5ItA">
+    <div class="track-header" onclick="toggleTrack(this)">
+      <span class="track-num">07</span>
+      <div class="track-thumb">🥁</div>
+      <div class="track-info">
+        <div class="track-title">Song Title Seven</div>
+        <div class="track-artist">Artist Name</div>
+      </div>
+      <span class="track-genre">Electronic</span>
+      <button class="expand-btn"><span class="chevron">▾</span></button>
+    </div>
+    <div class="embed-panel"></div>
+  </div>
+
+  <div class="track" data-id="https://open.spotify.com/track/10uLU6hMCjMI75M1A2tKUQC?si=F4YYmMixS0Oztwxy-B5ItA">
+    <div class="track-header" onclick="toggleTrack(this)">
+      <span class="track-num">08</span>
+      <div class="track-thumb">🪗</div>
+      <div class="track-info">
+        <div class="track-title">Song Title Eight</div>
+        <div class="track-artist">Artist Name</div>
+      </div>
+      <span class="track-genre">Folk</span>
+      <button class="expand-btn"><span class="chevron">▾</span></button>
+    </div>
+    <div class="embed-panel"></div>
+  </div>
+
+  <div class="track" data-id="https://open.spotify.com/track/11uLU6hMCjMI75M1A2tKUQC?si=F4YYmMixS0Oztwxy-B5ItA">
+    <div class="track-header" onclick="toggleTrack(this)">
+      <span class="track-num">09</span>
+      <div class="track-thumb">🎙️</div>
+      <div class="track-info">
+        <div class="track-title">Song Title Nine</div>
+        <div class="track-artist">Artist Name</div>
+      </div>
+      <span class="track-genre">Indie</span>
+      <button class="expand-btn"><span class="chevron">▾</span></button>
+    </div>
+    <div class="embed-panel"></div>
+  </div>
+
+  <div class="track" data-id="https://open.spotify.com/track/12uLU6hMCjMI75M1A2tKUQC?si=F4YYmMixS0Oztwxy-B5ItA">
+    <div class="track-header" onclick="toggleTrack(this)">
+      <span class="track-num">10</span>
+      <div class="track-thumb">🌊</div>
+      <div class="track-info">
+        <div class="track-title">Song Title Ten</div>
+        <div class="track-artist">Artist Name</div>
+      </div>
+      <span class="track-genre">Lo-Fi</span>
+      <button class="expand-btn"><span class="chevron">▾</span></button>
+    </div>
+    <div class="embed-panel"></div>
+  </div>
+
+</main>
+
+<footer>
+  Powered by <a href="https://spotify.com" target="_blank">Spotify</a> embeds &nbsp;·&nbsp; All previews via Spotify Web Player
+</footer>
+
+<script>
+  function toggleTrack(header) {
+    const card  = header.closest('.track');
+    const panel = card.querySelector('.embed-panel');
+    const trackId = card.dataset.id;
+    const isOpen  = card.classList.contains('open');
+
+    // Close all others
+    document.querySelectorAll('.track.open').forEach(t => {
+      if (t !== card) {
+        t.classList.remove('open');
+        t.querySelector('.embed-panel').innerHTML = '';
+      }
+    });
+
+    if (isOpen) {
+      card.classList.remove('open');
+      panel.innerHTML = '';
+    } else {
+      card.classList.add('open');
+
+      if (trackId.startsWith('SPOTIFY_TRACK_ID')) {
+        // Show placeholder until user fills in real IDs
+        panel.innerHTML = `
+          <div class="embed-placeholder">
+            <div class="icon">🎵</div>
+            <p>Replace <code>${trackId}</code> in the HTML with a real Spotify Track ID.<br>
+            Example: <code>4uLU6hMCjMI75M1A2tKUQC</code></p>
+          </div>`;
+      } else {
+        panel.innerHTML = `
+          <iframe
+            src="https://open.spotify.com/embed/track/${encodeURIComponent(trackId)}?utm_source=generator&theme=0"
+            width="100%"
+            height="152"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+          ></iframe>`;
+      }
+    }
+  }
+</script>
+</body>
+</html>
